@@ -1,5 +1,5 @@
-# PR.github.io
-<! DOCTYPE html >
+@@ -1,3 + 1,4 @@
++ <! DOCTYPE html >
 < html  lang = " ru " >
 	< голова >
 		< title > three.js webgl - геометрические фигуры </ title >
