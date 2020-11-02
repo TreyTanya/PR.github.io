@@ -1,147 +1,148 @@
-@@ -1,3 + 1,4 @@
-+ <! DOCTYPE html >
-< html  lang = " ru " >
-	< голова >
-		< title > three.js webgl - геометрические фигуры </ title >
-		< meta  charset = " utf-8 " >
-		< meta  name = " viewport " content = " width = device-width, user-scaleable = no, minimum-scale = 1.0, maximum-scale = 1.0 " >
-		< link  type = " text / css " rel = " stylesheet " href = " https://threejs.org/examples/main.css " >
-	</ голова >
-	< тело >
-		< div  id = " info " >
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - геометрические фигуры</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="https://threejs.org/examples/main.css">
+	</head>
+	<body>
+		<div id="info">
 			Трехмерные фигуры
-		</ div >
+		</div>
 
-		< script  type = " module " >
+		<script type="module">
 
-			импортировать * как  ТРИ  из  https://threejs.org/build/three.module.js ;
+			import * as THREE from 'https://threejs.org/build/three.module.js';
 
-			импортировать  {  OrbitControls  }  из  https://threejs.org/examples/jsm/controls/OrbitControls.js ' ;
+			import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js';
 
-			вар  камера ,  сцена ,  рендерер ;
-			var  Controls ;
-			var  ambientLight ,  light ;
-			init ( ) ;
-			animate ( ) ;
+			var camera, scene, renderer;
+			var controls;
+			var ambientLight, light;
+			var Earth, phi=-Math.PI / 2, radius = 1200;
+			init();
+			animate();
 
-			function  init ( )  {
+			function init() {
 
-				var  container  =  document . createElement (  'div'  ) ;
-				документ . тело . appendChild (  контейнер  ) ;
+				var container = document.createElement( 'div' );
+				document.body.appendChild( container );
 
-				// КАМЕРА
-				камера  =  новые  ТРИ . PerspectiveCamera (  45 ,  окно . InnerWidth / window . InnerHeight ,  1 ,  8000  ) ;
-				камера . положение . набор (  300 ,  700 ,  900  ) ;
+				// CAMERA
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100000 );
+				camera.position.set( 0, 0, 2500 );
 
-				// ФАРЫ
-				ambientLight  =  новые  ТРИ . AmbientLight (  0x333333  ) ; 	// 0,2
+				// LIGHTS
+				ambientLight = new THREE.AmbientLight( 0x333333 );	// 0.2
 
-				свет  =  новые  ТРИ . DirectionalLight (  0xFFFFFF ,  1.0  ) ;
-				свет . положение . набор (  1 ,  1 ,  1  ) ;				
-				// направление задается в GUI
+				light = new THREE.PointLight( 0xFFFFFF );
+				light.intensity = 3;
+				light.position.set( 0, 0, 0 );
+				// direction is set in GUI
 
 				// RENDERER
-				renderer  =  новые  ТРИ . WebGLRenderer (  {  сглаживание : истина  }  ) ;
-				рендерер . setPixelRatio (  окно . devicePixelRatio  ) ;
-				рендерер . setSize (  окно . внутренняя ширина ,  окно . внутренняя высота  ) ;
-				контейнер . appendChild (  рендерер . domElement  ) ;
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
 
-				// СОБЫТИЯ
-				окно . addEventListener (  'изменить размер' ,  onWindowResize ,  false  ) ;
+				// EVENTS
+				window.addEventListener( 'resize', onWindowResize, false );
 
-				// КОНТРОЛЬ
-				controls  =  new  OrbitControls (  камера ,  средство визуализации . domElement  ) ;
-				контроль . addEventListener (  'изменить' ,  отобразить  ) ;
-				//controls.rotateSpeed ​​= 1; 
-				контроль . enableZoom  =  true ;  
-				контроль . zoomSpeed  =  0,5 ;  
+				// CONTROLS
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.addEventListener( 'change', render );
+				//controls.rotateSpeed = 1; 
+				controls.enableZoom = true;  
+				controls.zoomSpeed = 0.5; 			
+				controls.enableDamping = true;
 
-				контроль . minDistance  =  500 ;
-				контроль . maxDistance  =  2500 ;
-				
-				контроль . enableDamping  =  true ;
+				// scene itself
+				scene = new THREE.Scene();
+				//scene.background = new THREE.Color( 0x120A2A );
 
-				// сама сцена
-				сцена  =  новые  ТРИ . Сцена ( ) ;
-				сцена . background  =  new  ТРИ . Цвет (  0xD3D3D3  ) ;
-
-				сцена . добавить (  ambientLight  ) ;
-				сцена . добавить (  светлый  ) ;
+				scene.add( ambientLight );
+				scene.add( light );
 			
 
-				// объекты сцены
+				// scene objects
+			
+				// Earth
+				
+				var textureLoader = new THREE.TextureLoader();
+				var map = textureLoader.load( 'earth.jpg' );
+				map.wrapS = map.wrapT = THREE.RepeatWrapping;
+				map.anisotropy = 16;
+				var material = new THREE.MeshPhongMaterial( { map: map } );
+				material.shininess = 0;
+				
+				var geometry = new THREE.SphereGeometry( 100, 64, 64 );
+				Earth = new THREE.Mesh( geometry, material );
+				scene.add( Earth );	
+				
+				// Sun
+				
+				var geometry = new THREE.SphereGeometry( 150, 64, 64 );	
+				var material = new THREE.MeshBasicMaterial( { color: 0xffaa00 } );				
+				var Sun = new THREE.Mesh( geometry, material );
+				scene.add( Sun );
 
-					var  geometry  =  новые  ТРИ . BoxGeometry (  200 ,  200 ,  150  ) ;
-					var  material  =  new  ТРИ . MeshPhongMaterial (  {  цвет : 0xFF4500  }  ) ;
-					var  Cube  =  новые  ТРИ . Сетка (  геометрия ,  материал  ) ;
-					Куб . положение . установить (  0 ,  0 ,  0  ) ;
-					//Cube.rotation.y = Math.PI / 6;
-					//scene.add (Куб);
+				var mapC = textureLoader.load( "glow.png" );
+				var sMaterial = new THREE.SpriteMaterial( { map: mapC, color: 0xffaa00 } );
+				sMaterial.blending = THREE.AdditiveBlending;	
+				var sprite = new THREE.Sprite( sMaterial );
+				sprite.scale.set( 500, 500, 1.0 );
+				Sun.add( sprite ); 
 
-					var  geometry  =  новые  ТРИ . SphereGeometry ( 100 ,  50 ,  50 ) ; 
-					var  material  =  new  ТРИ . MeshPhongMaterial (  {  цвет : 0xc41e3a  }  ) ;
-					var  Sphere1  =  новые  ТРИ . Сетка (  геометрия ,  материал  ) ;
-					Сфера1 . положение . установить (  300 ,  0 ,  0  ) ;
-					//scene.add (Sphere1);	
-
-					
-					var  radiusTop  =  64 ;  var  radiusBottom  =  128 ;
-					var  heigth  =  240 ;  var  сегментов  =  16 ;
-					
-					var  geometry  =  новые  ТРИ . CylinderGeometry ( 
-						radiusTop ,  radiusBottom ,  heigth ,  сегменты  ) ;
-						
-					var  material  =  new  ТРИ . MeshPhongMaterial (  {  цвет : 0x177245  }  ) ;
-					var  piramida  =  новые  ТРИ . Сетка (  геометрия ,  материал  ) ;
-					пирамида . положение . установить (  0 ,  0 ,  0  ) ; 
-					//piramida.rotation.x = -Math.PI / 2; 					
-					
-					//scene.add (пирамида);
-
-					
-				var  textureLoader  =  новый  ТРИ . TextureLoader ( ) ;
-				var  texture  =  textureLoader . загрузка (  'img / kot.png'  ) ;
-				var  material  =  new  ТРИ . MeshBasicMaterial (  {  карта : текстура  }  ) ;
-	
-					
-					var  geometry  =  новые  ТРИ . BoxGeometry (  300 ,  300 ,  300  ) ;
-					var  Cube  =  новые  ТРИ . Сетка (  геометрия ,  материал  ) ;
-					Куб . положение . установить (  0 ,  0 ,  0  ) ;
-					//Cube.rotation.y = Math.PI / 6;
-					сцена . добавить (  Куб  ) ;				
+				// Sky
+				
+				var geometry = new THREE.BoxGeometry ( 50000, 50000, 50000 );
+				var map = textureLoader.load( 'sky.jpg' );
+				map.wrapS = map.wrapT = THREE.RepeatWrapping;
+				map.repeat.set( 4, 4 );
+				map.anisotropy = 16;
+				var material = new THREE.MeshBasicMaterial( { map: map, side: THREE.BackSide } );		
+				var Sky = new THREE.Mesh( geometry, material );				
+				scene.add( Sky );
 
 			}
 
-			// ОБРАБОТКА СОБЫТИЙ
+			// EVENT HANDLERS
 
 
-			function  onWindowResize ( )  {
+			function onWindowResize() {
 
-				камера . аспект  =  окно . внутренняя ширина / окно . innerHeight ;
-				камера . updateProjectionMatrix ( ) ;
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
 
-				рендерер . setSize (  окно . внутренняя ширина ,  окно . внутренняя высота  ) ;
+				renderer.setSize( window.innerWidth, window.innerHeight );
 
 			}
 
 			//
 
-			function  animate ( )  {
+			function animate() {
 
-				requestAnimationFrame (  анимировать  ) ;
-				контроль . update ( ) ;  //
-				render ( ) ;
+				requestAnimationFrame( animate );
+				controls.update(); //
+				render();
 
 			}
 
-			function  render ( )  {
+			function render() {
 
-				рендерер . рендер (  сцена ,  камера  ) ;
+				Earth.position.x = radius * Math.cos( phi );  
+				Earth.position.z = radius * Math.sin( phi ); 
+				phi = phi + 0.001;
+				Earth.rotation.y = Earth.rotation.y + 0.01;
+				renderer.render( scene, camera );
 
 			}			
 
 
-		</ скрипт >
+		</script>
 
-	</ body >
-</ html >
+	</body>
+</html>
